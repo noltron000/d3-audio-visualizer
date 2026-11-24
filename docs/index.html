@@ -1,29 +1,29 @@
 <!doctype html>
 <html>
 	<head>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		<title>Audio Visualizer</title>
 		<link
 			href='./styles.css'
 			rel='stylesheet'
 		>
-		</link>
 	</head>
 	<body>
-		<audio
-			id='main-audio'
-			onplay='RickRoll()'
-			controls
-		>
-			<source
-				src='./data/rick-roll.mp3'
-				type='audio/mp3'
-			/>
-			This browser does not support the HTML5 audio element.
-		</audio>
-
-		<br />
-
-		<svg id='main-visual'>
-		</svg>
+		<main>
+			<svg id='main-visual' aria-hidden='true'></svg>
+			<audio
+				id='main-audio'
+				aria-label='Audio player'
+				onplay='RickRoll()'
+				controls
+			>
+				<source
+					src='./data/rick-roll.mp3'
+					type='audio/mp3'
+				/>
+				This browser does not support the HTML5 audio element.
+			</audio>
+		</main>
 
 		<script src='https://d3js.org/d3.v4.min.js'>
 		</script>
