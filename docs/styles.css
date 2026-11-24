@@ -5,8 +5,10 @@ html, body {
 
 main {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 16px;
 	min-height: 100vh;
 	padding: 24px;
 	box-sizing: border-box;
@@ -26,4 +28,86 @@ main {
 	width: 100%;
 	max-width: 640px;
 	color-scheme: dark;
+}
+
+h1 {
+	position: relative;
+	isolation: isolate;
+	margin: 0;
+	color: transparent;
+	font-family: Impact, 'Arial Narrow', 'Roboto Condensed', sans-serif;
+	font-size: clamp(2rem, 6vw, 3rem);
+	font-style: italic;
+	/* letter-spacing: -0.02em; */
+	text-align: center;
+	text-transform: uppercase;
+	animation: title-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite alternate;
+}
+
+.title-shadows {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.title-shadows::before, .title-shadows::after {
+	content: attr(data-text);
+	position: absolute;
+	inset: 0;
+	mix-blend-mode: overlay;
+	animation: title-shadow-swap 2s cubic-bezier(0.4, 0, 0.6, 1) infinite alternate;
+}
+
+.title-shadows::before {
+	text-shadow: 0 0 0 rgba(44, 123, 182, 0.9);
+	transform: translate(-1px, 1px);
+}
+
+.title-shadows::after {
+	text-shadow: 0 0 0 rgba(215, 25, 28, 0.9);
+	transform: translate(1px, -1px);
+	animation-direction: alternate-reverse;
+}
+
+@keyframes title-shadow-swap {
+	from {
+		transform: translate(-1px, 1px);
+	}
+
+	to {
+		transform: translate(1px, -1px);
+	}
+}
+
+@keyframes title-glow {
+	0% {
+		text-shadow: 0 0 8px rgba(255, 255, 255, 0);
+		/* Match each half of the shadows' easing curve. */
+		animation-timing-function: cubic-bezier(0.4, 0, 0.7, 0.5);
+	}
+
+	50% {
+		text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+		animation-timing-function: cubic-bezier(0.3, 0.5, 0.6, 1);
+	}
+
+	100% {
+		text-shadow: 0 0 8px rgba(255, 255, 255, 0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	h1, .title-shadows::before, .title-shadows::after {
+		animation: none;
+	}
+}
+
+@media (forced-colors: active) {
+	h1 {
+		animation: none;
+	}
+
+	.title-shadows {
+		display: none;
+	}
 }

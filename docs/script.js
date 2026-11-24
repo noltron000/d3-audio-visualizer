@@ -63,8 +63,10 @@ class AudioVisualizer {
 
 	_getPropertyR (index, frequency) {
 		const basic = this.props.width / this.frequencyArray.length / 2 + 0.3
-		const enlarge = basic * frequency / 10 - 5
-		return Math.min(Math.max(basic, enlarge), this.props.width / 2, this.props.height / 2)
+		const maximum = Math.min(Math.max(basic, basic * 255 / 10 - 5), this.props.width / 2, this.props.height / 2)
+		// Ease out so circles grow faster at lower amplitudes while retaining the maximum size.
+		const growth = 1 - Math.pow(1 - frequency / 255, 1.5)
+		return maximum * growth
 	}
 
 	resize () {
