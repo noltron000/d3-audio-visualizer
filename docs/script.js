@@ -1,11 +1,5 @@
 class AudioVisualizer {
 	constructor (audioURL) {
-		// Get width, height, etc.
-		this.props = {
-			'width': window.innerWidth,
-			'height': window.innerHeight,
-		}
-
 		// Get HTML elements.
 		this.audioElement = document.getElementById('main-audio')
 		this.visualElement = document.getElementById('main-visual')
@@ -18,6 +12,7 @@ class AudioVisualizer {
 		// https://developer.mozilla.org/en-US/docs/Web/API/AudioContext
 		this.audioContext = new AudioContext()
 		this.audioAnalyzer = this.audioContext.createAnalyser()
+		this.audioAnalyzer.fftSize = 2048
 
 		// TODO: understand what this does a little better
 		// connect source audio with the analyzer
@@ -25,12 +20,18 @@ class AudioVisualizer {
 		source.connect(this.audioAnalyzer)
 		this.audioAnalyzer.connect(this.audioContext.destination)
 
-		// Initialize a special array of a certain size,
-		// although each index will have no value set yet.
-		this.frequencyArray = new Uint8Array(this.audioAnalyzer.frequencyBinCount)
+		// The bundled track has only faint, infrequent activity above 15.4 kHz.
+		// Each FFT bin spans sampleRate / fftSize Hz; a shorter array omits higher bins.
+		const maxFrequencyHz = 15400
+		const frequencyBinCount = Math.min(
+			this.audioAnalyzer.frequencyBinCount,
+			Math.floor(maxFrequencyHz * this.audioAnalyzer.fftSize / this.audioContext.sampleRate) + 1
+		)
+		this.frequencyArray = new Uint8Array(frequencyBinCount)
 
 		// Start the first frame by calling the .setup() method.
 		this.setup()
+		window.addEventListener('resize', () => this.resize())
 	}
 
 	_getDataColor (index, frequency) {
@@ -47,21 +48,35 @@ class AudioVisualizer {
 	}
 
 	_getPositionX (index, frequency) {
-		return d3
-		.scaleLinear()
-		.domain([0, this.frequencyArray.length])
-		.range([0, this.props.width]) // this is a function!
-		(index) // immediately call it with an index.
+		const radius = this._getPropertyR(index, frequency)
+		const position = index * this.props.width / (this.frequencyArray.length - 1)
+		// Keep the full circle within the viewport, including at the edges.
+		return Math.max(radius, Math.min(this.props.width - radius, position))
 	}
 
 	_getPositionY (index, frequency) {
-		return this.props.height / 2 - frequency
+		const radius = this._getPropertyR(index, frequency)
+		// Scale vertical movement down for short viewports.
+		const position = this.props.height / 2 - frequency * Math.min(1, this.props.height / 512)
+		return Math.max(radius, Math.min(this.props.height - radius, position))
 	}
 
 	_getPropertyR (index, frequency) {
 		const basic = this.props.width / this.frequencyArray.length / 2 + 0.3
 		const enlarge = basic * frequency / 10 - 5
-		return Math.max(basic, enlarge)
+		return Math.min(Math.max(basic, enlarge), this.props.width / 2, this.props.height / 2)
+	}
+
+	resize () {
+		// Measure the SVG so its dimensions and circle positions follow the viewport.
+		const bounds = this.visualElement.getBoundingClientRect()
+		this.props = {
+			'width': bounds.width,
+			'height': bounds.height,
+		}
+		this.svg
+		.attr('width', this.props.width)
+		.attr('height', this.props.height)
 	}
 
 	setup () {
@@ -72,10 +87,9 @@ class AudioVisualizer {
 		this.svg = d3
 		// .select('main-visual')
 		.select(this.visualElement)
-		.attr('width', this.props.width)
-		.attr('height', this.props.height)
+		this.resize()
 
-		// create 1024 tiny circles
+		// create the frequency circles
 		this.svg
 		.selectAll('circle') // ???
 		.data(this.frequencyArray)
@@ -102,6 +116,7 @@ class AudioVisualizer {
 		this.svg
 		.selectAll('circle')
 		.data(this.frequencyArray)
+		.attr('cx', (frequency, index) => this._getPositionX(index, frequency))
 		.attr('cy', (frequency, index) => this._getPositionY(index, frequency))
 		.attr('fill', (frequency, index) => this._getDataColor(index, frequency))
 		.attr('r', (frequency, index) => this._getPropertyR(index, frequency))
