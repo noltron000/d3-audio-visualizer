@@ -7,5 +7,9 @@
 > The project is an audio visualizer!
 > This is a pretty bare-bones static site, but its still fun enough to keep around in my portfolio. ;)
 
+<p align="center">
+	<img src="https://repository-images.githubusercontent.com/241174792/9f112a00-5dfe-11ea-85b2-4da27d7c5527" alt="Rick" width="50%">
+</p>
+
 ## License
 This project is licensed under the MIT License.
